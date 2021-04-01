@@ -17,11 +17,16 @@ module.exports = function (app, swig, gestorBD) {
         res.send(respuesta);
     });
 
-    app.post("/cancion", function (req, res) {
+    app.post("/cancion", function(req, res) {
+        if ( req.session.usuario == null){
+            res.redirect("/tienda");
+            return;
+        }
         var cancion = {
-            nombre: req.body.nombre,
-            genero: req.body.genero,
-            precio: req.body.precio
+            nombre : req.body.nombre,
+            genero : req.body.genero,
+            precio : req.body.precio,
+            autor: req.session.usuario
         }
         // Conectarse
         gestorBD.insertarCancion(cancion, function (id) {
@@ -34,20 +39,20 @@ module.exports = function (app, swig, gestorBD) {
                         if (err) {
                             res.send("Error al subir la portada");
                         } else {
-                            res.send("Agregada id: " + id);
+                            if (req.files.audio != null) {
+                                let audio = req.files.audio;
+                                audio.mv('public/audios/'+id+'.mp3', function(err) {
+                                    if (err) {
+                                        res.send("Error al subir el audio");
+                                    } else {
+                                        res.send("Agregada id: "+ id);
+                                    }
+                                });
+                            }
                         }
                     });
                 }
-                if (req.files.audio != null) {
-                    let audio = req.files.audio;
-                    audio.mv('public/audios/'+id+'.mp3', function(err) {
-                        if (err) {
-                            res.send("Error al subir el audio");
-                        } else {
-                            res.send("Agregada id: "+ id);
-                        }
-                    });
-                }
+
             }
         });
     });
@@ -86,6 +91,11 @@ module.exports = function (app, swig, gestorBD) {
     });
 
     app.get('/canciones/agregar', function (req, res) {
+        if ( req.session.usuario == null){
+            res.redirect("/tienda");
+            return;
+        }
+
         let respuesta = swig.renderFile('views/bagregar.html', {});
         res.send(respuesta);
     })
