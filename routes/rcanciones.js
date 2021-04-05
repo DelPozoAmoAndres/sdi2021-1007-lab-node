@@ -70,18 +70,24 @@ module.exports = function (app, swig, gestorBD) {
 
 
     app.get('/cancion/:id', function (req, res) {
-        let criterio = { "_id" :  gestorBD.mongo.ObjectID(req.params.id) };
-        gestorBD.obtenerCanciones(criterio,function(canciones){
+        let criterio1 = { "_id" :  gestorBD.mongo.ObjectID(req.params.id) };
+        let criterio2 = { "cancion_id" :  gestorBD.mongo.ObjectID(req.params.id) };
+        gestorBD.obtenerCanciones(criterio1,function(canciones){
             if ( canciones == null ){
                 res.send("Error al recuperar la canción.");
             } else {
-                let respuesta = swig.renderFile('views/bcancion.html',
-                    {
-                        cancion : canciones[0]
-                    });
-                res.send(respuesta);
+                gestorBD.obtenerComentarios(criterio2,function (comentarios){
+                    let respuesta= swig.renderFile('views/bcancion.html',
+                            {
+                                cancion : canciones[0],
+                                comentarios : comentarios
+                            });
+                        res.send(respuesta);
+                });
+
             }
         });
+
     });
 
     app.get("/tienda", function(req, res) {
@@ -156,6 +162,9 @@ module.exports = function (app, swig, gestorBD) {
             }
         });
     });
+
+
+
     function paso1ModificarPortada(files, id, callback){
         if (files && files.portada != null) {
             let imagen =files.portada;
