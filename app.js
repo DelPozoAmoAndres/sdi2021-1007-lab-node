@@ -2,6 +2,10 @@
 let express = require("express");
 let app = express();
 
+let fs = require('fs');
+let https = require('https');
+
+
 let expressSession = require('express-session');
 app.use(expressSession({
     secret: 'abcdefg',
@@ -109,8 +113,18 @@ require("./routes/rcomentarios.js")(app, swig, gestorBD);  // (app, param1, para
 app.get('/', function (req, res) {
     res.redirect('/tienda');
 })
+app.get(function (err,req, res,next) {
+    console.log("Error producido: "+err);
+    if(!res.headersSent){
+        res.status(400);
+        res.send("Recurso no disponible");
+    }
+})
 
 //Lanzar el servidor
-app.listen(app.get('port'), function () {
+https.createServer({
+    key: fs.readFileSync('certificates/alice.key'),
+    cert: fs.readFileSync('certificates/alice.crt')
+}, app).listen(app.get('port'), function() {
     console.log("Servidor activo");
 });
