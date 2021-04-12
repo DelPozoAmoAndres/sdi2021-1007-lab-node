@@ -113,7 +113,16 @@ require("./routes/rcomentarios.js")(app, swig, gestorBD);  // (app, param1, para
 app.get('/', function (req, res) {
     res.redirect('/tienda');
 })
-
+app.get('*',function (req, res,next) {
+    console.log("Error producido: ");
+    if(!res.headersSent){
+        res.status(400);
+        res.send(swig.renderFile('views/error.html',
+            {
+                mensaje:"Error producido:"+res.statusCode
+            }))
+    }
+})
 //Lanzar el servidor
 https.createServer({
     key: fs.readFileSync('certificates/alice.key'),
