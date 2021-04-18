@@ -79,22 +79,26 @@ module.exports = function (app, swig, gestorBD) {
             if (canciones == null) {
                 res.send("Error al recuperar la canción.")
             } else {
-                gestorBD.obtenerCompras(criterio3, function (compras) {
-                    if (req.session.usuario!=undefined && (compras.length > 0
-                        || canciones[0].autor == req.session.usuario)) {
-                        comprada = true;
+                let configuracion = {
+                    url: "https://www.freeforexapi.com/api/live?pairs=EURUSD",
+                    method: "get",
+                    headers: {
+                        "token": "ejemplo",
                     }
-                    gestorBD.obtenerComentarios(criterio2, function (comentarios) {
-                        let respuesta = swig.renderFile('views/bcancion.html',
-                            {
-                                cancion: canciones[0],
-                                comentarios: comentarios,
-                                comprada: comprada
-                            });
-                        res.send(respuesta);
-                    });
-                });
-
+                }
+                let rest = app.get("rest");
+                rest(configuracion, function (error, response, body) {
+                    console.log("cod: " + response.statusCode + " Cuerpo :" + body);
+                    let objetoRespuesta = JSON.parse(body);
+                    let cambioUSD = objetoRespuesta.rates.EURUSD.rate;
+                    // nuevo campo "usd"
+                    canciones[0].usd = cambioUSD * canciones[0].precio;
+                    let respuesta = swig.renderFile('views/bcancion.html',
+                        {
+                            cancion: canciones[0]
+                        });
+                    res.send(respuesta);
+                })
             }
         });
 
